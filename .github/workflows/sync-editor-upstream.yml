@@ -1,0 +1,45 @@
+name: Sync BeagleEditor upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Check for upstream changes daily without running on every repository event.
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-editor-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Merge editor/main into motion/main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Motion
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure sync identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Merge upstream changes
+        run: |
+          git remote add editor-upstream https://github.com/beagleeditor/editor.git
+          git fetch editor-upstream main
+
+          if git merge-base --is-ancestor editor-upstream/main HEAD; then
+            echo 'Motion already contains the latest Editor main commit.'
+            exit 0
+          fi
+
+          # Keep Motion's design customizations. If upstream and Motion changed
+          # the same lines incompatibly, stop for a human to resolve the conflict.
+          git merge --no-edit editor-upstream/main
+          git push origin HEAD:main

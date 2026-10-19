@@ -6,6 +6,13 @@
 
 ### The **beagleful** editor, now with a redesigned UI.
 
+**BeagleEditor Motion** is the cinematic UI edition. Its core is kept aligned with
+[BeagleEditor](https://github.com/beagleeditor/editor): a scheduled GitHub Actions
+workflow checks for upstream `main` changes daily and merges them into Motion's
+`main`. You can also run that workflow manually from the Actions tab. If a change
+conflicts with Motion-specific UI work, the sync stops instead of overwriting it;
+resolve the conflict and rerun the workflow.
+
 [![Tauri](https://img.shields.io/badge/Tauri-2.x-24C8DB?logo=tauri&logoColor=white)](https://tauri.app)
 [![Rust](https://img.shields.io/badge/Rust-Latest-000000?logo=rust)](https://rust-lang.org)
 [![Bun](https://img.shields.io/badge/Bun-Latest-F9F1E1?logo=bun&logoColor=black)](https://bun.sh)
