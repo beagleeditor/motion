@@ -1,6 +1,7 @@
 import { UiIcon } from "./components/CustomIcon";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as monaco from "monaco-editor";
+import { AnimatePresence } from "motion/react";
 
 
 import { loader } from "@monaco-editor/react";
@@ -13,6 +14,7 @@ import { type AppNotification } from "./components/NotificationCenter";
 
 
 import "./App.css";
+import "./motion.css";
 import { useSettings } from "./lib/useSettings";
 import { Tab } from "./components/EditorTabs";
 import WorkspaceDialogs from "./components/WorkspaceDialogs";
@@ -23,6 +25,7 @@ import { useExtensionRuntime } from "./lib/useExtensionRuntime";
 import WorkspaceSidebar from "./components/WorkspaceSidebar";
 import EditorSurface from "./components/EditorSurface";
 import AppChrome from "./components/AppChrome";
+import SetupWizard from "./components/SetupWizard";
 
 import { getModelUriForTab } from "./lib/editorUtils";
 import { useEditorModel } from "./lib/useEditorModel";
@@ -35,6 +38,7 @@ import { useEditorCommands } from "./lib/useEditorCommands";
 import { useEditorFormatting } from "./lib/useEditorFormatting";
 import { useAppearance } from "./lib/useAppearance";
 import { useWorkspacePreferences } from "./lib/useWorkspacePreferences";
+import { defaultSettings } from "./lib/settings";
 import { invoke } from "@tauri-apps/api/core";
 import type { InstalledExtension } from "./lib/extensions";
 import type { WorkspaceFileNode } from "./lib/useWorkspaceFiles";
@@ -139,7 +143,8 @@ export default function App() {
 
   const [booting, setBooting] = useState(true);
 
-  const { settings: globalSettings, update: updateGlobalSetting } = useSettings();
+  const { settings: globalSettings, update: updateGlobalSetting, loaded: settingsLoaded, configured: settingsConfigured, markConfigured } = useSettings();
+  const [showSetup, setShowSetup] = useState(false);
 
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [quickOpenMode, setQuickOpenMode] = useState<"files" | "themes">("files");
@@ -215,6 +220,18 @@ export default function App() {
   const updateSettingsPage = useCallback(<K extends keyof typeof globalSettings>(key: K, value: (typeof globalSettings)[K]) => {
     updateSettingForWorkspace(settingsPageWorkspaceDir, key, value);
   }, [settingsPageWorkspaceDir, updateSettingForWorkspace, globalSettings]);
+
+  useEffect(() => {
+    if (!booting && settingsLoaded && !settingsConfigured) setShowSetup(true);
+  }, [booting, settingsLoaded, settingsConfigured]);
+
+  const resetAndRunSetup = useCallback(() => {
+    setSettingsScope("global");
+    for (const [key, value] of Object.entries(defaultSettings) as [keyof typeof defaultSettings, typeof defaultSettings[keyof typeof defaultSettings]][]) {
+      updateGlobalSetting(key, value as never);
+    }
+    setShowSetup(true);
+  }, [updateGlobalSetting]);
   const { theme, editorTheme, themeStyle, availableColorThemes, selectedExtensionTheme } =
     useAppearance(settings, extensions, enabledExtensions);
 
@@ -423,8 +440,9 @@ export default function App() {
 
   if (booting) {
     return (
-      <div className="app-shell">
-        <div style={{ padding: 20 }}>Restoring session...</div>
+      <div className="app-shell app-restoring" aria-live="polite">
+        <span className="app-restoring-mark" aria-hidden="true">B</span>
+        <span>Restoring workspace…</span>
       </div>
     );
   }
@@ -492,6 +510,7 @@ export default function App() {
             settings={settings} update={updateSetting} availableColorThemes={availableColorThemes}
             settingsPageSettings={settingsPageSettings} updateSettingsPage={updateSettingsPage}
             settingsScope={settingsScope} onSettingsScopeChange={setSettingsScope}
+            onRunSetup={resetAndRunSetup}
           />
 
           <main className={`main ${bottomPanel ? "has-bottom-panel" : ""}`}>
@@ -519,7 +538,9 @@ export default function App() {
               openFile={openFile} newFile={newFile} openFolder={openFolder} recentFolders={recentFolders}
               openRecentFolder={openRecentFolder}
             />
-            {bottomPanel === "problems" && <ProblemsPanel problems={allProblems} onSelect={(problem) => void openProblem(problem)} onClose={() => setBottomPanel(null)} />}
+            <AnimatePresence initial={false}>
+              {bottomPanel === "problems" && <ProblemsPanel key="problems-panel" problems={allProblems} onSelect={(problem) => void openProblem(problem)} onClose={() => setBottomPanel(null)} />}
+            </AnimatePresence>
             {terminalPanelCreated && <div style={{ display: bottomPanel === "terminal" ? "contents" : "none" }}><TerminalPanel cwd={workspaceDir} onClose={() => setBottomPanel(null)} onOpenLocation={(location) => void openTerminalLocation(location)} /></div>}
           </main>
         </div>
@@ -552,6 +573,11 @@ export default function App() {
           onDismissNotification={(id) => setNotifications((current) => current.filter((notification) => notification.id !== id))}
           onClearNotifications={() => setNotifications([])}
         />
+        {showSetup && settingsLoaded && <SetupWizard
+        settings={globalSettings}
+        update={updateGlobalSetting}
+        onComplete={() => { markConfigured(); setShowSetup(false); }}
+      />}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fsAPI, FileNode } from "../lib/fs";
 import { listen } from "@tauri-apps/api/event";
 import { CustomIcon, FileIcon, UiIcon } from "./CustomIcon";
@@ -340,6 +341,7 @@ function TreeNode({
   }) => void;
   defaultOpen?: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(defaultOpen);
   const [children, setChildren] = useState<FileNode[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -458,7 +460,9 @@ function TreeNode({
           });
         }}
       >
-        <UiIcon name={open ? "chevron-down" : "chevron-right"} size={14} style={{ marginRight: 2, opacity: 0.8 }} />
+        <motion.span className="folder-chevron" animate={{ rotate: open ? 90 : 0 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 650, damping: 38 }}>
+          <UiIcon name="chevron-right" size={14} style={{ marginRight: 2, opacity: 0.8 }} />
+        </motion.span>
         <FileIcon name={node.name} isDir size={16} />
         <span>{node.name}</span>
 
@@ -476,17 +480,26 @@ function TreeNode({
       )}
 
       {/* children */}
-      {open &&
-        children?.map((child) => (
-          <TreeNode
+      <AnimatePresence initial={false}>
+        {open && children?.map((child) => (
+          <motion.div
             key={child.path}
-            node={child}
-            depth={depth + 1}
-            onOpenFile={onOpenFile}
-            onContextMenu={onContextMenu}
-            defaultOpen={false}
-          />
+            initial={reduceMotion ? false : { height: 0, opacity: 0, x: -5 }}
+            animate={{ height: "auto", opacity: 1, x: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { height: 0, opacity: 0, x: -4 }}
+            transition={reduceMotion ? { duration: 0 } : { height: { type: "spring", stiffness: 340, damping: 32 }, opacity: { duration: 0.14 }, x: { duration: 0.18 } }}
+            style={{ overflow: "hidden" }}
+          >
+            <TreeNode
+              node={child}
+              depth={depth + 1}
+              onOpenFile={onOpenFile}
+              onContextMenu={onContextMenu}
+              defaultOpen={false}
+            />
+          </motion.div>
         ))}
+      </AnimatePresence>
     </div>
   );
 }

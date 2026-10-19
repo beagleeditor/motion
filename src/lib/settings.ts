@@ -1,5 +1,5 @@
 export type Settings = {
-  theme: "dark" | "light" | "system";
+  theme: "dark" | "light" | "midnight-teal" | "yalda-night" | "system";
   colorTheme: string;
   sidebarWidth: number;
   fontSize: number;

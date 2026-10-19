@@ -1,0 +1,154 @@
+/* BeagleEditor Motion: shared timing, easing and transition choreography. */
+:root {
+  /* Shared motion and surface tokens: responsive by default, spatial for major changes. */
+  --motion-micro: 100ms;
+  --motion-control: 150ms;
+  --motion-structural: 240ms;
+  --motion-navigation: 300ms;
+  --motion-ease: cubic-bezier(.2, .7, .2, 1);
+  --motion-enter: cubic-bezier(.16, 1, .3, 1);
+  --motion-exit: cubic-bezier(.4, 0, 1, 1);
+  --motion-focus-ring: color-mix(in srgb, var(--accent) 66%, transparent);
+  --surface-shadow-raised: 0 12px 36px rgb(0 0 0 / 22%);
+}
+
+.workspace { isolation: isolate; }
+.activity-bar { position: relative; z-index: 2; }
+.activity-btn {
+  position: relative;
+  transition: color var(--motion-micro) ease, background-color var(--motion-micro) ease,
+    transform var(--motion-micro) var(--motion-ease);
+}
+.activity-active-indicator { position: absolute; inset: 5px 4px; border-radius: 11px; background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent); pointer-events: none; }
+.activity-btn > svg, .activity-btn > span:not(.activity-active-indicator) { position: relative; z-index: 1; }
+.activity-btn:active { transform: scale(.94); }
+
+.motion-sidebar {
+  flex: 0 0 auto; min-width: 0; overflow: hidden;
+  will-change: width, opacity;
+  transform-origin: left center;
+}
+.motion-sidebar.is-hidden { border-right-width: 0; pointer-events: none; }
+.motion-sidebar .sidebar { flex: 0 0 auto; overflow: hidden; }
+.motion-sidebar.is-hidden .resizer { display: none; }
+.motion-sidebar .resizer { transition: background-color var(--motion-micro) ease; }
+.main { min-width: 0; }
+
+.tabs > .tab {
+  position: relative;
+  transition: background-color var(--motion-control) ease, color var(--motion-control) ease,
+    border-color var(--motion-control) ease, opacity var(--motion-control) ease;
+}
+.tab-active-indicator { position: absolute; z-index: 0; inset: 0; border-radius: 7px 7px 0 0; background: color-mix(in srgb, var(--accent) 8%, transparent); border-bottom: 2px solid var(--accent); pointer-events: none; }
+.tabs > .tab > *:not(.tab-active-indicator) { position: relative; z-index: 1; }
+.tabs > .tab:not(.active):hover { opacity: .88; }
+.tab-close, .new-tab-btn { transition: color var(--motion-micro) ease, background-color var(--motion-micro) ease, transform var(--motion-micro) var(--motion-ease); }
+.tab-close:active, .new-tab-btn:active { transform: scale(.9); }
+
+button, [role="button"] {
+  transition-property: color, background-color, border-color, opacity, box-shadow;
+  transition-duration: var(--motion-micro); transition-timing-function: ease;
+}
+button:active:not(:disabled), [role="button"]:active { transition-duration: 60ms; }
+button:focus-visible, [role="button"]:focus-visible, [role="tab"]:focus-visible,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--motion-focus-ring);
+  outline-offset: 2px;
+}
+input, textarea, select { transition: border-color var(--motion-control) ease, box-shadow var(--motion-control) ease; }
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
+}
+
+.safe-mode-backdrop, .git-diff-overlay { animation: motion-backdrop-in var(--motion-control) ease both; }
+.safe-mode-dialog, .git-diff-dialog, .notification-history,
+.terminal-task-menu {
+  transform-origin: top center;
+  animation: motion-surface-in var(--motion-control) var(--motion-enter) both;
+}
+.context-menu { animation: motion-context-in var(--motion-micro) var(--motion-enter) both; transform-origin: top left; }
+.context-menu-item { transition: color var(--motion-micro) ease, background-color var(--motion-micro) ease, padding-left var(--motion-micro) var(--motion-ease); }
+.context-menu-item:hover { color: var(--text); }
+.notification-toast { animation: motion-toast-in var(--motion-control) var(--motion-enter) both; }
+.notification-toast:nth-child(2) { animation-delay: 24ms; }
+.notification-toast:nth-child(3) { animation-delay: 42ms; }
+.notification-history-list article { animation: motion-row-in var(--motion-control) var(--motion-enter) both; }
+.notification-history-list article:nth-child(2) { animation-delay: 18ms; }
+.notification-history-list article:nth-child(3) { animation-delay: 32ms; }
+
+.file, .folder, .file-item, .folder-item, .search-item, .problem-row, .extension-card, .setting-item {
+  transition: background-color var(--motion-micro) ease, border-color var(--motion-micro) ease,
+    color var(--motion-micro) ease, opacity var(--motion-control) ease, transform var(--motion-micro) var(--motion-ease);
+}
+.file-item:active, .folder-item:active, .search-item:active, .problem-row:active { transform: scale(.995); }
+.extension-card:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+.setting-item:focus-within { border-radius: 6px; }
+.folder > :first-child { transition: color var(--motion-micro) ease; }
+.terminal-panel { animation: motion-panel-in var(--motion-structural) var(--motion-enter) both; }
+.run-debug-panel, .sc-panel, .search-panel, .settings-panel { animation: motion-panel-in var(--motion-structural) var(--motion-enter) both; }
+.run-debug-output-tabs button, .terminal-tab, .bottom-panel-tabs button { transition: color var(--motion-micro) ease, background-color var(--motion-micro) ease, border-color var(--motion-micro) ease; }
+.status-panel-button.active { box-shadow: inset 0 -2px var(--accent); }
+.status-bar { transition: background-color var(--motion-control) ease, border-color var(--motion-control) ease; }
+.status-panel-button, .status-extension-item, .status-safe-mode {
+  transition: background-color var(--motion-micro) ease, color var(--motion-micro) ease, opacity var(--motion-micro) ease;
+}
+.extension-toggle { transition: background-color var(--motion-control) var(--motion-ease), border-color var(--motion-control) ease; }
+
+/* Cinematic moments are reserved for actual view/panel entrances, not every mount. */
+.activity-btn:hover { transform: translateY(-1px); }
+.activity-btn.active { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent); }
+.explorer-action-btn:hover, .status-panel-button:hover, .tab-close:hover, .new-tab-btn:hover { transform: translateY(-1px); }
+.extension-toggle:active, .explorer-action-btn:active, .status-panel-button:active { transform: scale(.97); }
+.titlebar-search:focus-within { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+.bottom-panel { animation: motion-panel-in var(--motion-structural) var(--motion-enter) both; transform-origin: bottom center; }
+.editor-tabs, .tabs { position: relative; }
+.tab.active::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+.app-restoring { display: grid; place-content: center; justify-items: center; gap: 10px; color: var(--muted, #85877d); font-size: 12px; }
+.app-restoring-mark { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--accent, #a8a8a0); border-radius: 9px; color: var(--accent, #a8a8a0); font-weight: 700; animation: restoring-mark-in 700ms var(--motion-enter) both, restoring-mark-breathe 2.2s ease-in-out 700ms infinite; }
+
+/* One coordinated entrance after workspace hydration; keep input surfaces snappy. */
+.app-shell > .titlebar { animation: motion-chrome-in 420ms var(--motion-enter) both; }
+.app-shell > .app { animation: motion-shell-in 480ms var(--motion-enter) both; }
+.app-shell > .app > .workspace > .activity-bar { animation: motion-rail-in 460ms var(--motion-enter) 70ms both; }
+.app-shell > .app > .workspace > .motion-sidebar { animation: motion-sidebar-in 420ms var(--motion-enter) 120ms both; }
+.app-shell > .app > .workspace > .main { animation: motion-editor-in 480ms var(--motion-enter) 90ms both; }
+.app-shell > .app > .status-bar { animation: motion-status-in 360ms var(--motion-enter) 180ms both; }
+.folder-chevron { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 14px; transform-origin: center; }
+
+@keyframes motion-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes motion-surface-in { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes motion-toast-in { from { opacity: 0; transform: translateX(18px) scale(.985); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes motion-row-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-panel-in { from { opacity: .5; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-context-in { from { opacity: 0; transform: translateY(-3px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes motion-chrome-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-rail-in { from { opacity: 0; transform: translateX(-14px) scale(.97); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes motion-sidebar-in { from { opacity: 0; transform: translateX(-9px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes motion-editor-in { from { opacity: .7; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-editor-surface-in { from { opacity: .55; } to { opacity: 1; } }
+@keyframes motion-tab-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-title-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes restoring-mark-in { from { opacity: 0; transform: translateY(8px) scale(.82) rotate(-8deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(0); } }
+@keyframes restoring-mark-breathe { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, #a8a8a0) 0%, transparent); } 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent, #a8a8a0) 10%, transparent); } }
+@keyframes motion-shell-in { from { opacity: .72; } to { opacity: 1; } }
+@keyframes motion-status-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-section-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes motion-tab-sheen { 0% { background-position: 100% 0; opacity: 0; } 30% { opacity: 1; } 100% { background-position: -120% 0; opacity: 0; } }
+
+@media (max-width: 760px) {
+  .motion-sidebar { max-width: 42vw; }
+  .motion-sidebar.is-hidden { width: 0 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-micro: 1ms; --motion-control: 1ms; --motion-structural: 1ms; --motion-navigation: 1ms; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important; animation-duration: 1ms !important; animation-delay: 0ms !important;
+    transition-duration: 1ms !important; transition-delay: 0ms !important;
+  }
+  .motion-sidebar, .motion-sidebar .sidebar { will-change: auto; }
+  .activity-active-indicator, .tab-active-indicator { transition: none !important; }
+  .app-restoring-mark, .app-shell > .app-chrome, .app-shell > .titlebar, .app-shell > .app, .app-shell > .app > .workspace > .activity-bar, .app-shell > .app > .workspace > .motion-sidebar, .app-shell > .app > .workspace > .main, .app-shell > .app > .status-bar,
+  .main, .tabs > .tab, .editor-container, .welcome-hero h1, .welcome-section, .welcome-tip-section,
+  .terminal-panel, .run-debug-panel, .sc-panel, .search-panel, .settings-panel, .bottom-panel { animation: none !important; }
+}

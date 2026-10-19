@@ -9,6 +9,7 @@ type Props = {
   workspaceDir: string | null;
   activeWorkspaceDir: string | null;
   onScopeChange: (scope: "global" | "workspace") => void;
+  onRunSetup: () => void;
 };
 
 type SettingRowProps = { label: string; description?: string; children: ReactNode };
@@ -40,7 +41,7 @@ function Toggle({ label, description, value, onChange }: {
   </SettingRow>;
 }
 
-export default function SettingsPage({ settings, update, colorThemes, workspaceDir, activeWorkspaceDir, onScopeChange }: Props) {
+export default function SettingsPage({ settings, update, colorThemes, workspaceDir, activeWorkspaceDir, onScopeChange, onRunSetup }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   const reset = () => {
@@ -57,7 +58,10 @@ export default function SettingsPage({ settings, update, colorThemes, workspaceD
           <div className="search-title">SETTINGS</div>
           <p>{workspaceDir ? `Changes apply to ${workspaceDir}.` : "Changes apply globally, across all workspaces."}</p>
         </div>
-        <button className="settings-reset" onClick={() => setConfirmReset(true)}>Reset defaults</button>
+        <div className="settings-heading-actions">
+          <button className="settings-reset" onClick={() => setConfirmReset(true)}>Reset defaults</button>
+          <button className="settings-run-setup" onClick={onRunSetup}><span aria-hidden="true">✳</span> Reset and run the setup</button>
+        </div>
       </div>
 
       <div className="settings-scope-row">
@@ -71,8 +75,8 @@ export default function SettingsPage({ settings, update, colorThemes, workspaceD
       <div className="settings-content">
         <div className="settings-section">Appearance</div>
         <SettingRow label="Interface theme" description="Choose the application interface appearance.">
-          <select value={settings.theme} onChange={(event) => update("theme", event.target.value as Settings["theme"])}>
-            <option value="dark">Dark</option><option value="light">Light</option><option value="system">Follow system</option>
+          <select value={settings.theme === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : settings.theme} onChange={(event) => update("theme", event.target.value as Settings["theme"])}>
+            <option value="dark">Dark</option><option value="light">Light</option><option value="midnight-teal">Midnight Teal</option><option value="yalda-night">Yalda's Night</option>
           </select>
         </SettingRow>
         <SettingRow label="Editor color theme" description="Use a built-in theme or an installed theme extension.">

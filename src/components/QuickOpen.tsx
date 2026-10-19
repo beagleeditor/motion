@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { searchAPI } from "../lib/search";
 import { FileIcon } from "./CustomIcon";
 
@@ -25,6 +26,7 @@ export default function QuickOpen({
   onOpen,
   onClose,
 }: Props) {
+  const reduceMotion = useReducedMotion();
   const query = externalQuery ?? "";
   const [selected, setSelected] = useState(0);
   const [files, setFiles] = useState<{ path: string; name: string }[]>([]);
@@ -108,14 +110,14 @@ export default function QuickOpen({
   }, [itemCount, mode, results, themeResults, selected, onOpen, onSelectTheme, onClose]);
 
   return (
-    <div className={`quickopen-backdrop theme-${theme}`} onClick={onClose}>
-      <div className="quickopen" onClick={(e) => e.stopPropagation()}>
+    <motion.div className={`fixed inset-x-0 top-[42px] z-[9999] bg-black/10 backdrop-blur-[7px] ${theme === "light" ? "saturate-[0.88]" : ""}`} onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.16 }}>
+      <motion.div className="quickopen absolute left-0 right-0 top-0 mx-auto flex w-[700px] max-w-[calc(100vw-40px)] flex-col overflow-hidden rounded-xl border border-border shadow-[0_24px_64px_rgba(0,0,0,0.35)]" onClick={(e) => e.stopPropagation()} initial={reduceMotion ? false : { opacity: 0, y: -14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -7, scale: 0.99 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 340, damping: 29 }}>
         {/* RESULTS */}
-        <div className={`quickopen-results ${mode === "themes" ? "quickopen-theme-results" : ""}`}>
+        <div className={`quickopen-results flex max-h-[400px] flex-col gap-0.5 overflow-y-auto bg-surface text-text ${mode === "themes" ? "quickopen-theme-results" : ""}`}>
           {mode === "themes" ? (themeResults.length === 0 ? (
-            <div className="quickopen-empty">No themes found. Install a theme extension to add more.</div>
+            <div className="quickopen-empty p-3 text-[13px] text-muted">No themes found. Install a theme extension to add more.</div>
           ) : themeResults.map((item, index) => (
-            <button type="button" key={item.id} className={`quickopen-item quickopen-theme-item ${index === selected ? "selected" : ""} ${activeThemeId === item.id ? "active-theme" : ""}`} aria-pressed={activeThemeId === item.id} onMouseEnter={() => setSelected(index)} onClick={() => { onSelectTheme?.(item.id); onClose(); }}>
+            <button type="button" key={item.id} className={`quickopen-item flex min-h-[66px] w-full cursor-pointer items-center gap-3 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-text hover:bg-surface-hover ${index === selected ? "selected bg-surface-hover" : ""} ${activeThemeId === item.id ? "active-theme" : ""} quickopen-theme-item`} aria-pressed={activeThemeId === item.id} onMouseEnter={() => setSelected(index)} onClick={() => { onSelectTheme?.(item.id); onClose(); }}>
               <span className={`theme-preview theme-preview-${item.base === "vs" ? "light" : "dark"}`} style={{ background: item.colors["editor.background"] ?? (item.base === "vs" ? "#fff" : "#171717"), color: item.colors["editor.foreground"] ?? (item.base === "vs" ? "#222" : "#eee"), borderColor: item.colors["sideBar.border"] ?? item.colors["panel.border"] ?? "transparent" }}>
                 <span style={{ background: item.colors["sideBar.background"] ?? "#777" }} />
                 <span style={{ background: item.colors["editor.selectionBackground"] ?? item.colors["focusBorder"] ?? "#888" }} />
@@ -126,13 +128,13 @@ export default function QuickOpen({
               {activeThemeId === item.id && <span className="quickopen-theme-check">✓</span>}
             </button>
           ))) : results.length === 0 ? (
-            <div className="quickopen-empty">No files found</div>
+            <div className="quickopen-empty p-3 text-[13px] text-muted">No files found</div>
           ) : (
             results.map((file, index) => (
               <button
                 type="button"
                 key={file.path}
-                className={`quickopen-item ${index === selected ? "selected" : ""}`}
+                className={`quickopen-item flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-3 py-2 text-left text-text hover:bg-surface-hover ${index === selected ? "selected bg-surface-hover" : ""}`}
                 onMouseEnter={() => setSelected(index)}
                 onClick={() => {
                   onOpen(file.path);
@@ -152,7 +154,7 @@ export default function QuickOpen({
             ))
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

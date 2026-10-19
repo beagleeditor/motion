@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { AnimatePresence } from "motion/react";
 import TitleBar from "./Titlebar";
 import QuickOpen from "./QuickOpen";
 import CommandPalette, { type PaletteCommand } from "./CommandPalette";
@@ -36,15 +37,18 @@ export default function AppChrome(props: Props) {
 
   return (
     <>
-      {commandPaletteVisible && <CommandPalette
-        theme={theme} commands={commands} query={commandPaletteQuery}
-        onClose={() => { setCommandPaletteVisible(false); setCommandPaletteQuery(""); }}
-      />}
-      {quickOpenVisible && <QuickOpen
-        theme={theme}
-        mode={quickOpenMode}
-        root={workspaceDir}
-        themes={[
+      <AnimatePresence initial={false} mode="sync">
+        {commandPaletteVisible && <CommandPalette
+          key="command-palette"
+          theme={theme} commands={commands} query={commandPaletteQuery}
+          onClose={() => { setCommandPaletteVisible(false); setCommandPaletteQuery(""); }}
+        />}
+        {quickOpenVisible && <QuickOpen
+          key="quick-open"
+          theme={theme}
+          mode={quickOpenMode}
+          root={workspaceDir}
+          themes={[
           {
             id: "auto",
             name: "Match Interface Appearance",
@@ -59,13 +63,14 @@ export default function AppChrome(props: Props) {
             base: extension.themeData?.base ?? "vs-dark",
             colors: extension.themeData?.colors ?? {},
           })),
-        ]}
-        activeThemeId={settings.colorTheme}
-        onSelectTheme={(id) => update("colorTheme", id)}
-        query={quickOpenQuery}
-        onOpen={openFileFromExplorer}
-        onClose={() => { setQuickOpenVisible(false); setQuickOpenQuery(""); setQuickOpenMode("files"); }}
-      />}
+          ]}
+          activeThemeId={settings.colorTheme}
+          onSelectTheme={(id) => update("colorTheme", id)}
+          query={quickOpenQuery}
+          onOpen={openFileFromExplorer}
+          onClose={() => { setQuickOpenVisible(false); setQuickOpenQuery(""); setQuickOpenMode("files"); }}
+        />}
+      </AnimatePresence>
       <TitleBar
         theme={theme} query={quickOpenQuery} onQueryChange={setQuickOpenQuery}
         quickOpenOpen={quickOpenVisible} quickOpenMode={quickOpenMode}

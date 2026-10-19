@@ -5,11 +5,15 @@ import { defaultSettings } from "./settings";
 const storePromise = Store.load("settings.json");
 let writeQueue: Promise<void> = Promise.resolve();
 
-export async function getSettings(): Promise<Settings> {
+export async function getSettingsState(): Promise<{ settings: Settings; configured: boolean }> {
   const store = await storePromise;
   const saved = (await store.get("settings")) as Partial<Settings> | null;
 
-  return { ...defaultSettings, ...saved };
+  return { settings: { ...defaultSettings, ...saved }, configured: saved !== null && saved !== undefined };
+}
+
+export async function getSettings(): Promise<Settings> {
+  return (await getSettingsState()).settings;
 }
 
 export function setSettings(next: Settings): Promise<void> {

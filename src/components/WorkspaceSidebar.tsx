@@ -1,4 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import ActivityBar from "./ActivityBar";
@@ -37,15 +38,17 @@ type Props = {
   updateSettingsPage: ReturnType<typeof useSettings>["update"];
   settingsScope: "global" | "workspace"; onSettingsScopeChange: (scope: "global" | "workspace") => void;
   availableColorThemes: InstalledExtension[];
+  onRunSetup: () => void;
 };
 
 export default function WorkspaceSidebar(props: Props) {
+  const reduceMotion = useReducedMotion();
   const { sidebarView, sidebarVisible, sidebarWidth, setSidebarView, setSidebarVisible, setSidebarWidth,
     resizingRef, startX, startWidth, fileTree, openFolder, closeFolder, recentFolders, openRecentFolder, openFileFromExplorer,
     reloadWorkspace, createItem, setRenameError, setRenameTarget, setRenamePath, setDeleteError,
     setDeleteTarget, workspaceDir, activeFile, extensions, extensionStatus, extensionsDirectory, enabledExtensions,
     setEnabledExtensions, reloadExtensions, setExtensionStatus, onRevokeExtensionPermissions, installingExtension,
-    setInstallingExtension, settings, update, settingsPageSettings, updateSettingsPage, settingsScope, onSettingsScopeChange, availableColorThemes } = props;
+    setInstallingExtension, settings, update, settingsPageSettings, updateSettingsPage, settingsScope, onSettingsScopeChange, availableColorThemes, onRunSetup } = props;
   return (
     <>
           <ActivityBar
@@ -58,7 +61,14 @@ export default function WorkspaceSidebar(props: Props) {
               }
             }}
           />
-            <div className="sidebar-container" style={{ display: sidebarVisible ? undefined : "none" }}>
+            <motion.div
+              className={`sidebar-container motion-sidebar ${sidebarVisible ? "is-visible" : "is-hidden"}`}
+              initial={false}
+              animate={{ width: sidebarVisible ? sidebarWidth + 1 : 0, opacity: sidebarVisible ? 1 : 0 }}
+              transition={reduceMotion ? { duration: 0 } : { width: { type: "spring", stiffness: 620, damping: 52, mass: 0.62 }, opacity: { duration: 0.12, ease: [0.2, 0.7, 0.2, 1] } }}
+              aria-hidden={!sidebarVisible}
+              inert={!sidebarVisible}
+            >
               <div className="sidebar" style={{ width: sidebarWidth }}>
                 {sidebarView === "files" && (
                   <Explorer
@@ -173,6 +183,7 @@ export default function WorkspaceSidebar(props: Props) {
                     workspaceDir={settingsScope === "workspace" ? workspaceDir : null}
                     activeWorkspaceDir={workspaceDir}
                     onScopeChange={onSettingsScopeChange}
+                    onRunSetup={onRunSetup}
                   />
                 )}
               </div>
@@ -185,7 +196,7 @@ export default function WorkspaceSidebar(props: Props) {
                   startWidth.current = sidebarWidth;
                 }}
               />
-            </div>
+            </motion.div>
     </>
   );
 }

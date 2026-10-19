@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { FileIcon } from "./CustomIcon";
 
 export type Tab = {
@@ -26,6 +27,7 @@ export default function EditorTabs({
   onClose,
 }: Props) {
   const tabsRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const activeTab = tabsRef.current?.querySelector<HTMLElement>(".tab.active");
@@ -33,11 +35,11 @@ export default function EditorTabs({
   }, [activeTabId, tabs.length]);
 
   return (
-    <div className="tabs" ref={tabsRef} aria-label="Open files" role="tablist">
+    <div className="tabs flex h-12 w-full min-w-0 flex-[0_0_48px] items-center gap-2 overflow-x-auto overflow-y-hidden whitespace-nowrap border-b border-border px-3 [overscroll-behavior-x:contain]" ref={tabsRef} aria-label="Open files" role="tablist">
       {tabs.map((tab) => (
         <div
           key={tab.id}
-          className={`tab ${tab.id === activeTabId ? "active" : ""}`}
+          className={`tab relative flex h-[34px] shrink-0 cursor-pointer items-center gap-2.5 rounded-[10px] px-3 text-sm transition-colors hover:bg-surface-hover ${tab.id === activeTabId ? "active bg-surface-hover" : ""}`}
           role="tab"
           aria-selected={tab.id === activeTabId}
           tabIndex={tab.id === activeTabId ? 0 : -1}
@@ -54,17 +56,18 @@ export default function EditorTabs({
             }
           }}
         >
+          {tab.id === activeTabId && <motion.span className="tab-active-indicator" layoutId="tab-active-indicator" transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 650, damping: 45 }} />}
           {/* FILE ICON */}
           <FileIcon name={tab.name} isDir={false} />
           {/* FILE NAME */}
-          <span className="tab-label">
+          <span className="tab-label max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap">
             {tab.name}
             {tab.dirty ? " •" : ""}
           </span>
 
           {/* CLOSE BUTTON */}
           <button
-            className="tab-close"
+            className="tab-close flex size-[18px] cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-sm leading-none text-muted transition-colors hover:bg-red-500/15 hover:text-[#ff5a5a]"
             aria-label={`Close ${tab.name}`}
             title={`Close ${tab.name}`}
             onClick={(e) => {
@@ -78,7 +81,7 @@ export default function EditorTabs({
       ))}
 
       {/* NEW TAB */}
-      <button className="new-tab-btn" onClick={onNewTab} aria-label="New file" title="New file">
+      <button className="new-tab-btn flex size-7 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-muted transition-colors hover:bg-surface-hover hover:text-text" onClick={onNewTab} aria-label="New file" title="New file">
         +
       </button>
     </div>

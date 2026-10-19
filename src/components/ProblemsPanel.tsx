@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "motion/react";
 import { UiIcon } from "./CustomIcon";
 
 
@@ -20,11 +21,12 @@ type Props = {
 };
 
 export default function ProblemsPanel({ problems, onSelect, onClose }: Props) {
+  const reduceMotion = useReducedMotion();
   const errors = problems.filter((problem) => problem.severity === 1).length;
   const warnings = problems.filter((problem) => problem.severity === 2).length;
 
   return (
-    <section className="problems-panel" aria-label="Problems">
+    <motion.section className="problems-panel" aria-label="Problems" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 32 }}>
       <header className="bottom-panel-header">
         <div className="bottom-panel-tabs"><strong>Problems</strong><span className="panel-count">{problems.length}</span></div>
         <div className="problems-summary">
@@ -45,6 +47,6 @@ export default function ProblemsPanel({ problems, onSelect, onClose }: Props) {
           </button>;
         })}
       </div>
-    </section>
+    </motion.section>
   );
 }
